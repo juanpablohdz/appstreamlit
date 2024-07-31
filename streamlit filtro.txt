@@ -1,0 +1,151 @@
+
+import streamlit as st 
+import pandas as pd
+import plotly.express as px
+from streamlit_option_menu import option_menu
+from numerize import numerize
+
+#preparacion de los datos 
+st.set_page_config(page_title="Dashboard",page_icon=":game_die:",layout="centered")
+st.subheader("RSM- FILL-RATE MAYORISTA KPI")
+st.markdown("##")
+
+#Carga de datos
+df=pd.read_excel("EJEMPLO_PARA _OPTIMIZAR.xlsx")
+Datos_limpios=df
+
+
+Datos_limpios=df
+# Definir la función para mapear semanas a meses
+def week_to_month(week):
+    if 1 <= week <= 4:
+        return 'Enero'
+    elif 5 <= week <= 8:
+        return 'Febrero'
+    elif 9 <= week <= 13:
+        return 'Marzo'
+    elif 14 <= week <= 17:
+        return 'Abril'
+    elif 18 <= week <= 21:
+        return 'Mayo'
+    elif 22 <= week <= 26:
+        return 'Junio'
+    elif 27 <= week <= 30:
+        return 'Julio'
+    elif 31 <= week <= 35:
+        return 'Agosto'
+    elif 36 <= week <= 39:
+        return 'Septiembre'
+    elif 40 <= week <= 43:
+        return 'Octubre'
+    elif 44 <= week <= 48:
+        return 'Noviembre'
+    elif 49 <= week <= 52:
+        return 'Diciembre'
+    else:
+        return 'Unknown'
+
+# Aplicar la función para crear una nueva columna de meses
+Datos_limpios['Mes'] = Datos_limpios['WEEK'].apply(week_to_month)
+# Crear secciones del DataFrame por cada mes
+enero = Datos_limpios[Datos_limpios['Mes'] == 'Enero']
+febrero = Datos_limpios[Datos_limpios['Mes'] == 'Febrero']
+marzo = Datos_limpios[Datos_limpios['Mes'] == 'Marzo']
+abril = Datos_limpios[Datos_limpios['Mes'] == 'Abril']
+mayo = Datos_limpios[Datos_limpios['Mes'] == 'Mayo']
+junio = Datos_limpios[Datos_limpios['Mes'] == 'Junio']
+julio = Datos_limpios[Datos_limpios['Mes'] == 'Julio']
+agosto = Datos_limpios[Datos_limpios['Mes'] == 'Agosto']
+septiembre = Datos_limpios[Datos_limpios['Mes'] == 'Septiembre']
+octubre = Datos_limpios[Datos_limpios['Mes'] == 'Octubre']
+noviembre = Datos_limpios[Datos_limpios['Mes'] == 'Noviembre']
+diciembre = Datos_limpios[Datos_limpios['Mes'] == 'Diciembre']
+
+
+#primer campo calculado Uni
+suma_importe_factural = Datos_limpios['IMPORTE_FACTURA'].sum()
+suma_compra_total = Datos_limpios['COMPRATOTAL'].sum()
+resultado = suma_importe_factural / suma_compra_total if suma_compra_total != 0 else 0
+# que se va a vizualizar
+df=pd.DataFrame(result,columns)
+df=pd.DataFrame(Datos_limpios,columns=["SUC_NADRO","Mes","ABCD","CAPA_FALTANTE","PROVEDOR ","GRUPO","LABORATORIO","WEEK"])
+#df=pd.DataFrame(result,columns=["SUC_NADRO"])
+
+st.sidebar.image("Rfp.png", caption="Automatización Fill-rate Mayoristas")
+#barra de filtros
+st.sidebar.header("Filtros")
+
+# Definir los filtros
+## Definir los filtros
+Suc_nadro = st.sidebar.multiselect(
+    "Selecciona el SUC_NADRO",
+    options=df["SUC_NADRO"].unique(),
+    default=df["SUC_NADRO"].unique()
+)
+
+abcd = st.sidebar.multiselect(
+    "Selecciona el ABCD",
+    options=df["ABCD"].unique(),
+    default=df["ABCD"].unique()
+)
+
+Mes = st.sidebar.multiselect(
+    "Selecciona el Mes que deseas filtrar",
+    options=df["Mes"].unique(),
+    default=df["Mes"].unique()
+)
+
+Capa_faltante = st.sidebar.multiselect(
+    "Selecciona el CAPA_FALTANTE",
+    options=df["CAPA_FALTANTE"].unique(),
+    default=df["CAPA_FALTANTE"].unique()
+)
+
+Provedor = st.sidebar.multiselect(
+    "Selecciona el Proveedor",
+    options=df["PROVEDOR "].unique(),
+    default=df["PROVEDOR "].unique()
+)
+
+Grupo = st.sidebar.multiselect(
+    "Selecciona el Grupo",
+    options=df["GRUPO"].unique(),
+    default=df["GRUPO"].unique()
+)
+
+Laboratorio = st.sidebar.multiselect(
+    "Selecciona el Laboratorio",
+    options=df["LABORATORIO"].unique(),
+    default=df["LABORATORIO"].unique()
+)
+
+Week = st.sidebar.multiselect(
+    "Selecciona La semana",
+    options=df["WEEK"].unique(),
+    default=df["WEEK"].unique()
+)
+
+# Realizar la selección de datos
+df_selection = df.query(
+    "SUC_NADRO == @Suc_nadro & ABCD == @abcd & Mes == @Mes & CAPA_FALTANTE == @Capa_faltante & `PROVEDOR ` == @Provedor & GRUPO == @Grupo & LABORATORIO == @Laboratorio & WEEK == @Week"
+)
+
+# Mostrar los datos filtrados
+st.dataframe(df_selection)
+# & Mes==@Mes & CAPA_FALTANTE==@CAPA_FALTANTE
+# & PROVEDOR ==@PROVEDOR  & GRUPO==@GRUPO & LABORATORIO==@LABORATORIO & WEEK==WEEK
+
+def Home():
+    with st.expander("Tabular"):
+        showData=st.multiselect("Filter:",df_selection.columns,default=[])
+        st.write(df_selection[showData])
+Home()
+# IDEA PONER LIMITE EN LA TABLA Y SOLO QUE SE MUESTREN 10 DE LO QUE NOS INTERESA  LO VEO INECESARIO
+#EN ESTE FILTRO PODEMOS INCLUIR LO QUE ES LA SUMA DE UNIQUE  BRUTO ETC
+
+
+## O YA QUE TENEMOS LA TABLA PODEMOS QUE  SOLO MUESTRE LOS RESULTADOS ESPERADOS COMO LO ESTA HACIENDO EN LOS KPI\
+
+# PONER GRAFICOS INTERACIVOS QUE SE CONECTEN ENTRE TABLAS 
+
+
